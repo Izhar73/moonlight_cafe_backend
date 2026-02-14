@@ -1,54 +1,70 @@
-// src/controllers/dashboardController.js
-import { db } from "../firebase_config.js";
-import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
+const ManageOrders = require("./../DBOperation/ManageOrders");
+const ManageProduct = require("./../DBOperation/ManageProduct");
+const ManageCategory = require("./../DBOperation/ManageCategory");
 
 class DashboardController {
-  async getStats(req, res) {
+
+  // 📊 Get dashboard statistics
+  getStats = async (req, res) => {
     try {
-      // References
-      const productsCol = collection(db, "Product_Master");
-      const categoriesCol = collection(db, "Category_Master");
-      const ordersCol = collection(db, "Orders");
 
-      // Fetch all products, categories, orders
-      const [productsSnap, categoriesSnap, ordersSnap] = await Promise.all([
-        getDocs(productsCol),
-        getDocs(categoriesCol),
-        getDocs(ordersCol),
-      ]);
+      // 📦 Products count
+      const productsData = await ManageProduct.getAllProducts();
+      const productsCount =
+        productsData.Status === "OK" ? productsData.Result.length : 0;
 
-      const productsCount = productsSnap.size;
-      const categoriesCount = categoriesSnap.size;
-      const orders = ordersSnap.docs.map(doc => ({ _id: doc.id, ...doc.data() }));
+      // 🗂 Categories count
+      const categoriesData = await ManageCategory.getCategories();
+      const categoriesCount =
+        categoriesData.Status === "OK" ? categoriesData.Result.length : 0;
+
+      // 🧾 Orders
+      const ordersData = await ManageOrders.getAllOrders();
+      const orders =
+        ordersData.Status === "OK" ? ordersData.Result : [];
+
       const ordersCount = orders.length;
 
-      // Total Revenue
-      const totalRevenue = orders.reduce((sum, order) => sum + Number(order.Total || 0), 0);
+      // 💰 Total Revenue
+      const totalRevenue = orders.reduce(
+        (sum, order) => sum + Number(order.Total || 0),
+        0
+      );
 
-      // Today’s Revenue
+      // 📅 Today’s Revenue
       const today = new Date();
-      const todayDateStr = today.toISOString().slice(0, 10);
+      const todayStr = today.toISOString().slice(0, 10);
 
       const todayRevenue = orders
-        .filter(o => {
-          if (!o.OrderDate) return false;
-
-          const orderDate = o.OrderDate.seconds
-            ? new Date(o.OrderDate.seconds * 1000)
-            : new Date(o.OrderDate);
-          return orderDate.toISOString().slice(0, 10) === todayDateStr;
+        .filter(order => {
+          if (!order.OrderDate) return false;
+          const orderDate = new Date(order.OrderDate)
+            .toISOString()
+            .slice(0, 10);
+          return orderDate === todayStr;
         })
-        .reduce((sum, o) => sum + Number(o.Total || 0), 0);
+        .reduce((sum, order) => sum + Number(order.Total || 0), 0);
 
       return res.status(200).json({
         Status: "OK",
-        Result: { productsCount, categoriesCount, ordersCount, totalRevenue, todayRevenue },
+        Result: {
+          productsCount,
+          categoriesCount,
+          ordersCount,
+          totalRevenue,
+          todayRevenue,
+        },
       });
+
     } catch (error) {
       console.error("🔥 Dashboard error:", error);
-      return res.status(500).json({ Status: "Fail", Message: error.message });
+      return res.status(500).json({
+        Status: "Fail",
+        Message: "Internal Server Error",
+        Error: error.message,
+      });
     }
-  }
+  };
 }
 
-export default new DashboardController();
+module.exports = new DashboardController();
