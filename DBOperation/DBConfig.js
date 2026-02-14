@@ -4,19 +4,13 @@ let client;
 let db;
 
 const dbConfig = async () => {
-  try {
-    if (!client) {
-      const url = process.env.MONGO_URI;  // 🔥 USE ATLAS URI
-      client = new MongoClient(url);
-      await client.connect();
-      db = client.db("moonlight"); // ⚠ use same DB name you used in Atlas
-      console.log("✅ MongoDB Connected Successfully");
-    }
-    return db;
-  } catch (error) {
-    console.error("❌ MongoDB Connection Error:", error);
-    throw error;
+  if (!client) {
+    client = new MongoClient(process.env.MONGO_URI);
+    await client.connect();
+    db = client.db("moonlight"); // ⚠ Atlas DB name
+    console.log("✅ MongoDB Connected Successfully");
   }
+  return db;
 };
 
 module.exports = { dbConfig };

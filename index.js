@@ -1,6 +1,8 @@
 // -------------------------------------
 // ✅ MongoDB Connection (Atlas)
 // -------------------------------------
+require("dotenv").config();
+
 const mongoose = require("mongoose");
 
 mongoose
