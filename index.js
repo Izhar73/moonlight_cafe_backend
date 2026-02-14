@@ -1,15 +1,17 @@
 // -------------------------------------
-// ✅ MongoDB Connection
+// ✅ MongoDB Connection (Atlas)
 // -------------------------------------
 const mongoose = require("mongoose");
 
 mongoose
-  .connect("mongodb://127.0.0.1:27017/moonlight_cafe", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+  .connect(process.env.MONGO_URI, {
+    dbName: "moonlight", // ⚠ must match your Atlas database name
   })
   .then(() => console.log("✅ MongoDB Connected Successfully"))
-  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+  .catch((err) => {
+    console.error("❌ MongoDB Connection Error:", err);
+    process.exit(1);
+  });
 
 // -------------------------------------
 // 🌙 MoonLight Cafe Backend
@@ -27,19 +29,24 @@ const AdminController = require("./Controller/AdminController");
 const OrderController = require("./Controller/OrderController");
 const CartController = require("./Controller/CartController");
 const FeedbackController = require("./Controller/FeedbackController");
-
-// ✅ Dashboard Controller
 const DashboardController = require("./Controller/DashboardController");
 
 const app = express();
+
+// -------------------------------------
+// ✅ Middlewares
+// -------------------------------------
 app.use(express.json());
 app.use(cors());
+
 app.use(
   "/Content/Product/",
   express.static(path.join(__dirname, "Content/Product"))
 );
 
-// ✅ Root Check Route
+// -------------------------------------
+// ✅ Root Route
+// -------------------------------------
 app.get("/", (req, res) => {
   res.send("🚀 MoonLight Cafe API Running Successfully!");
 });
@@ -55,7 +62,7 @@ app.get("/category/getbyid/:id", CategoryController.getByIdRequest);
 app.get("/category/list/:type", CategoryController.listByTypeRequest);
 
 // ----------------------------------------
-// PRODUCT ROUTES
+// 🛍 PRODUCT ROUTES
 // ----------------------------------------
 app.post("/product/save", ProductController.saveRequest);
 app.get("/product/list", ProductController.listRequest);
@@ -64,17 +71,17 @@ app.delete("/product/delete/:id", ProductController.deleteRequest);
 app.get("/product/getbyid/:id", ProductController.getByIdRequest);
 
 // ----------------------------------------
-// USER REGISTERATION ROUTES
+// 👤 USER REGISTERATION ROUTES
 // ----------------------------------------
 app.post("/Registeration/register", RegisterationController.register);
 app.post("/Registeration/login", RegisterationController.loginRequest);
 app.get("/Registeration/list", RegisterationController.getAllUsers);
 
-// ✅ Admin Users API
+// Admin users
 app.get("/admin/users", RegisterationController.getAllUsers);
 
 // ----------------------------------------
-// LOGIN ROUTES
+// 🔐 LOGIN ROUTES
 // ----------------------------------------
 app.post("/Login/save", LoginController.saveRequest);
 app.get("/Login/list", LoginController.listRequest);
@@ -83,7 +90,7 @@ app.delete("/Login/delete/:id", LoginController.deleteRequest);
 app.get("/Login/getbyid/:id", LoginController.getByIdRequest);
 
 // ----------------------------------------
-// ADMIN ROUTES
+// 🛠 ADMIN ROUTES
 // ----------------------------------------
 app.post("/Admin/save", AdminController.saveRequest);
 app.post("/Admin/Authetication", AdminController.authenticationRequest);
@@ -94,7 +101,7 @@ app.delete("/Admin/delete/:id", AdminController.deleteRequest);
 app.get("/Admin/getbyid/:id", AdminController.getByIdRequest);
 
 // ----------------------------------------
-// CART ROUTES
+// 🛒 CART ROUTES
 // ----------------------------------------
 app.post("/cart/save", CartController.saveRequest);
 app.get("/cart/list", CartController.listAllRequest);
@@ -104,7 +111,7 @@ app.put("/cart/update/:id", CartController.updateRequest);
 app.delete("/cart/delete/:id", CartController.deleteRequest);
 
 // ----------------------------------------
-// ORDER ROUTES
+// 📦 ORDER ROUTES
 // ----------------------------------------
 app.post("/order/save", OrderController.saveOrder);
 app.get("/order/list", OrderController.listOrder);
@@ -112,7 +119,7 @@ app.put("/order/updateStatus/:id", OrderController.updateStatus);
 app.get("/order/list/:id", OrderController.listByUserRequest);
 
 // ----------------------------------------
-// FEEDBACK ROUTES
+// 💬 FEEDBACK ROUTES
 // ----------------------------------------
 app.post("/Feedback/save", FeedbackController.saveRequest);
 app.get("/Feedback/list", FeedbackController.listRequest);
@@ -121,15 +128,15 @@ app.delete("/Feedback/delete/:id", FeedbackController.deleteRequest);
 app.get("/Feedback/getbyid/:id", FeedbackController.getByIdRequest);
 
 // ----------------------------------------
-// 🧮 DASHBOARD ROUTE
+// 📊 DASHBOARD ROUTE
 // ----------------------------------------
 app.get("/dashboard/stats", DashboardController.getStats);
-
 
 // ----------------------------------------
 // 🚀 SERVER START
 // ----------------------------------------
-const PORT = 9600;
+const PORT = process.env.PORT || 9600;
+
 app.listen(PORT, () => {
-  console.log(`🚀 Server started successfully at http://localhost:${PORT}`);
+  console.log(`🚀 Server started successfully on port ${PORT}`);
 });
