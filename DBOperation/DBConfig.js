@@ -1,16 +1,22 @@
 const { MongoClient } = require("mongodb");
 
 let client;
+let db;
 
 const dbConfig = async () => {
-  if (!client) {
-    const url = "mongodb://localhost:27017";
-    client = new MongoClient(url);
-    await client.connect();
+  try {
+    if (!client) {
+      const url = process.env.MONGO_URI;  // 🔥 USE ATLAS URI
+      client = new MongoClient(url);
+      await client.connect();
+      db = client.db("moonlight"); // ⚠ use same DB name you used in Atlas
+      console.log("✅ MongoDB Connected Successfully");
+    }
+    return db;
+  } catch (error) {
+    console.error("❌ MongoDB Connection Error:", error);
+    throw error;
   }
-  const dbName = "MoonLight_Cafe";
-  const db = client.db(dbName);
-  return db;
 };
 
 module.exports = { dbConfig };
