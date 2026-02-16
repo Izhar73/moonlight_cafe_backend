@@ -94,29 +94,16 @@ class CategoryController {
 
   // ✅ Update category
   updateRequest = async (req, res) => {
-    const id = req.params.id;
-    const data = req.body;
+  const { id } = req.params;
 
-    if (!id) {
-      return res.status(400).json({ Status: "Fail", Result: "Id Is Required" });
-    }
+  const result = await manageCategory.updateCategory(id, req.body);
 
-    if (!data || Object.keys(data).length === 0) {
-      return res.status(400).json({ Status: "Fail", Result: "Update Data Is Required" });
-    }
+  if (result.Status === "OK") {
+    return res.status(200).json(result);
+  }
+  return res.status(400).json(result);
+};
 
-    if (data.type && !["Veg", "Non-Veg"].includes(data.type)) {
-      return res.status(400).json({ Status: "Fail", Result: "Invalid category type" });
-    }
-
-    const responseResult = await manageCategory.updateCategory(id, data);
-
-    if (responseResult.Status === "OK") {
-      return res.status(200).json(responseResult);
-    }
-
-    return res.status(400).json(responseResult);
-  };
 }
 
 module.exports = new CategoryController();

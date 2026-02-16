@@ -64,27 +64,18 @@ class ManageCategory {
   };
 
   // ✅ Update Category
-  updateCategory = async (id, data) => {
+  async updateCategory(id, data) {
+  try {
     const db = await dbConfig();
-    const collection = db.collection("Category_Master");
+    await db.collection("Category").doc(id).update(data);
 
-    const result = await collection.updateOne(
-      { _id: parseInt(id) },
-      {
-        $set: {
-          category_name: data.category_name,
-          description: data.description,
-          type: data.type || "Veg",
-          status: data.status || "Active",
-          updated_at: new Date(),
-        },
-      }
-    );
+    return { Status: "OK", Result: "Category updated successfully" };
+  } catch (error) {
+    console.error("Update Error:", error);
+    return { Status: "Fail", Result: error.message };
+  }
+}
 
-    return result.acknowledged
-      ? { Status: "OK", Result: "Successfully Updated" }
-      : { Status: "Fail", Result: "Something Went Wrong" };
-  };
 
   // ✅ Delete Category
   deleteCategory = async (id) => {
