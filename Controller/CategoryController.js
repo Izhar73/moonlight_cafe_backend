@@ -5,24 +5,24 @@ const manageCategory = require("./../DBOperation/ManageCategory");
 
 class CategoryController {
   // ✅ Save new category
-  saveRequest = async (req, res) => {
+ saveRequest = async (req, res) => {
+  try {
     const { category_name, type } = req.body;
 
-    if (!category_name) {
-      return res.status(400).json({ Status: "Fail", Result: "category_name is required" });
-    }
-
-    if (!type || !["Veg", "Non-Veg"].includes(type)) {
-      return res.status(400).json({ Status: "Fail", Result: "type must be 'Veg' or 'Non-Veg'" });
+    if (!category_name || !type) {
+      return res.status(400).json({
+        Status: "Fail",
+        Result: "category_name and type required",
+      });
     }
 
     const result = await manageCategory.saveCategory(req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ Status: "Fail", Result: err.message });
+  }
+};
 
-    if (result.Status === "OK") {
-      return res.status(200).json(result);
-    }
-    return res.status(400).json(result);
-  };
 
   // ✅ Get all categories
   listRequest = async (req, res) => {

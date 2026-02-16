@@ -1,27 +1,15 @@
 const { MongoClient } = require("mongodb");
 
-let client;
-let db;
+let dbInstance;
 
-const dbConfig = async () => {
-  try {
-    if (!client) {
-      if (!process.env.MONGO_URI) {
-        throw new Error("MONGO_URI is undefined");
-      }
-
-      client = new MongoClient(process.env.MONGO_URI);
-      await client.connect();
-
-      db = client.db("moonlight"); // Must match Atlas DB name
-      console.log("✅ MongoDB Connected Successfully");
-    }
-
-    return db;
-  } catch (error) {
-    console.error("❌ DB Connection Error:", error);
-    throw error;
+async function dbConfig() {
+  if (!dbInstance) {
+    const client = new MongoClient(process.env.MONGO_URI);
+    await client.connect();
+    dbInstance = client.db("moonlight");
+    console.log("✅ MongoDB Connected");
   }
-};
+  return dbInstance;
+}
 
 module.exports = { dbConfig };

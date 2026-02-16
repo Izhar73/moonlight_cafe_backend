@@ -1,13 +1,22 @@
 // -------------------------------------
-// ✅ MongoDB Connection (Atlas)
+// 🌙 MoonLight Cafe Backend - FINAL VERSION
 // -------------------------------------
+
 require("dotenv").config();
 
+const express = require("express");
+const cors = require("cors");
+const path = require("path");
 const mongoose = require("mongoose");
 
+const app = express();
+
+// -------------------------------------
+// ✅ MongoDB Connection (Atlas)
+// -------------------------------------
 mongoose
   .connect(process.env.MONGO_URI, {
-    dbName: "moonlight", // ⚠ must match your Atlas database name
+    dbName: "moonlight",
   })
   .then(() => console.log("✅ MongoDB Connected Successfully"))
   .catch((err) => {
@@ -16,121 +25,106 @@ mongoose
   });
 
 // -------------------------------------
-// 🌙 MoonLight Cafe Backend
-// -------------------------------------
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
-
-// 🧩 Controllers Import
-const CategoryController = require("./Controller/CategoryController");
-const ProductController = require("./Controller/ProductController");
-const RegisterationController = require("./Controller/RegisterationController");
-const LoginController = require("./Controller/LoginController");
-const AdminController = require("./Controller/AdminController");
-const OrderController = require("./Controller/OrderController");
-const CartController = require("./Controller/CartController");
-const FeedbackController = require("./Controller/FeedbackController");
-const DashboardController = require("./Controller/DashboardController");
-
-const app = express();
-
-// -------------------------------------
 // ✅ Middlewares
 // -------------------------------------
-app.use(express.json());
 app.use(cors());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 
+// -------------------------------------
+// ✅ Static Folder (Images)
+// -------------------------------------
 app.use("/Content", express.static(path.join(__dirname, "Content")));
-
 
 // -------------------------------------
 // ✅ Root Route
 // -------------------------------------
 app.get("/", (req, res) => {
-  res.send("🚀 MoonLight Cafe API Running Successfully!");
+  res.json({
+    Status: "OK",
+    Result: "🚀 MoonLight Cafe API Running Successfully!",
+  });
 });
 
 // ----------------------------------------
-// 🌙 CATEGORY ROUTES
+// 🌙 CATEGORY ROUTES (LOWERCASE ONLY)
 // ----------------------------------------
-app.post("/category/save", CategoryController.saveRequest);
-app.put("/category/update/:id", CategoryController.updateRequest);
-app.delete("/category/delete/:id", CategoryController.deleteRequest);
-app.get("/category/list", CategoryController.listRequest);
-app.get("/category/getbyid/:id", CategoryController.getByIdRequest);
-app.get("/category/list/:type", CategoryController.listByTypeRequest);
+app.post("/category/save", require("./Controller/CategoryController").saveRequest);
+app.put("/category/update/:id", require("./Controller/CategoryController").updateRequest);
+app.delete("/category/delete/:id", require("./Controller/CategoryController").deleteRequest);
+app.get("/category/list", require("./Controller/CategoryController").listRequest);
+app.get("/category/getbyid/:id", require("./Controller/CategoryController").getByIdRequest);
+app.get("/category/list/type/:type", require("./Controller/CategoryController").listByTypeRequest);
 
 // ----------------------------------------
 // 🛍 PRODUCT ROUTES
 // ----------------------------------------
-app.post("/product/save", ProductController.saveRequest);
-app.get("/product/list", ProductController.listRequest);
-app.put("/product/update/:id", ProductController.updateRequest);
-app.delete("/product/delete/:id", ProductController.deleteRequest);
-app.get("/product/getbyid/:id", ProductController.getByIdRequest);
+app.post("/product/save", require("./Controller/ProductController").saveRequest);
+app.get("/product/list", require("./Controller/ProductController").listRequest);
+app.put("/product/update/:id", require("./Controller/ProductController").updateRequest);
+app.delete("/product/delete/:id", require("./Controller/ProductController").deleteRequest);
+app.get("/product/getbyid/:id", require("./Controller/ProductController").getByIdRequest);
 
 // ----------------------------------------
 // 👤 USER REGISTERATION ROUTES
 // ----------------------------------------
-app.post("/Registeration/register", RegisterationController.register);
-app.post("/Registeration/login", RegisterationController.loginRequest);
-app.get("/Registeration/list", RegisterationController.getAllUsers);
-
-// Admin users
-app.get("/admin/users", RegisterationController.getAllUsers);
+app.post("/registeration/register", require("./Controller/RegisterationController").register);
+app.post("/registeration/login", require("./Controller/RegisterationController").loginRequest);
+app.get("/registeration/list", require("./Controller/RegisterationController").getAllUsers);
 
 // ----------------------------------------
-// 🔐 LOGIN ROUTES
+// 🔐 ADMIN ROUTES
 // ----------------------------------------
-app.post("/Login/save", LoginController.saveRequest);
-app.get("/Login/list", LoginController.listRequest);
-app.put("/Login/update/:id", LoginController.updateRequest);
-app.delete("/Login/delete/:id", LoginController.deleteRequest);
-app.get("/Login/getbyid/:id", LoginController.getByIdRequest);
-
-// ----------------------------------------
-// 🛠 ADMIN ROUTES
-// ----------------------------------------
-app.post("/Admin/save", AdminController.saveRequest);
-app.post("/Admin/Authetication", AdminController.authenticationRequest);
-app.put("/Admin/ChangePassword", AdminController.chnagePasswordRequest);
-app.get("/Admin/list", AdminController.listRequest);
-app.put("/Admin/update/:id", AdminController.updateRequest);
-app.delete("/Admin/delete/:id", AdminController.deleteRequest);
-app.get("/Admin/getbyid/:id", AdminController.getByIdRequest);
+app.post("/admin/save", require("./Controller/AdminController").saveRequest);
+app.post("/admin/authentication", require("./Controller/AdminController").authenticationRequest);
+app.put("/admin/changepassword", require("./Controller/AdminController").chnagePasswordRequest);
+app.get("/admin/list", require("./Controller/AdminController").listRequest);
+app.put("/admin/update/:id", require("./Controller/AdminController").updateRequest);
+app.delete("/admin/delete/:id", require("./Controller/AdminController").deleteRequest);
+app.get("/admin/getbyid/:id", require("./Controller/AdminController").getByIdRequest);
 
 // ----------------------------------------
 // 🛒 CART ROUTES
 // ----------------------------------------
-app.post("/cart/save", CartController.saveRequest);
-app.get("/cart/list", CartController.listAllRequest);
-app.get("/cart/list/:id", CartController.listRequest);
-app.get("/cart/getbyid/:id", CartController.getByIdRequest);
-app.put("/cart/update/:id", CartController.updateRequest);
-app.delete("/cart/delete/:id", CartController.deleteRequest);
+app.post("/cart/save", require("./Controller/CartController").saveRequest);
+app.get("/cart/list", require("./Controller/CartController").listAllRequest);
+app.get("/cart/list/:id", require("./Controller/CartController").listRequest);
+app.get("/cart/getbyid/:id", require("./Controller/CartController").getByIdRequest);
+app.put("/cart/update/:id", require("./Controller/CartController").updateRequest);
+app.delete("/cart/delete/:id", require("./Controller/CartController").deleteRequest);
 
 // ----------------------------------------
 // 📦 ORDER ROUTES
 // ----------------------------------------
-app.post("/order/save", OrderController.saveOrder);
-app.get("/order/list", OrderController.listOrder);
-app.put("/order/updateStatus/:id", OrderController.updateStatus);
-app.get("/order/list/:id", OrderController.listByUserRequest);
+app.post("/order/save", require("./Controller/OrderController").saveOrder);
+app.get("/order/list", require("./Controller/OrderController").listOrder);
+app.put("/order/updatestatus/:id", require("./Controller/OrderController").updateStatus);
+app.get("/order/list/user/:id", require("./Controller/OrderController").listByUserRequest);
 
 // ----------------------------------------
-// 💬 FEEDBACK ROUTES
+// 💬 FEEDBACK ROUTES (LOWERCASE FIXED)
 // ----------------------------------------
-app.post("/Feedback/save", FeedbackController.saveRequest);
-app.get("/Feedback/list", FeedbackController.listRequest);
-app.put("/Feedback/update/:id", FeedbackController.updateRequest);
-app.delete("/Feedback/delete/:id", FeedbackController.deleteRequest);
-app.get("/Feedback/getbyid/:id", FeedbackController.getByIdRequest);
+app.post("/feedback/save", require("./Controller/FeedbackController").saveRequest);
+app.get("/feedback/list", require("./Controller/FeedbackController").listRequest);
+app.put("/feedback/update/:id", require("./Controller/FeedbackController").updateRequest);
+app.delete("/feedback/delete/:id", require("./Controller/FeedbackController").deleteRequest);
+app.get("/feedback/getbyid/:id", require("./Controller/FeedbackController").getByIdRequest);
 
 // ----------------------------------------
 // 📊 DASHBOARD ROUTE
 // ----------------------------------------
-app.get("/dashboard/stats", DashboardController.getStats);
+app.get("/dashboard/stats", require("./Controller/DashboardController").getStats);
+
+// ----------------------------------------
+// ❗ GLOBAL ERROR HANDLER (IMPORTANT)
+// ----------------------------------------
+app.use((err, req, res, next) => {
+  console.error("❌ Server Error:", err);
+  res.status(500).json({
+    Status: "Fail",
+    Result: err.message || "Internal Server Error",
+  });
+});
 
 // ----------------------------------------
 // 🚀 SERVER START

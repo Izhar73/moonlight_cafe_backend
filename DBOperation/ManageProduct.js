@@ -113,7 +113,7 @@ updateProduct = async (id, data) => {
         ProductName: data.ProductName,
         Description: data.Description,
         Price: data.Price,
-        FileName: data.FileName || existing.FileName, // keep old image
+        FileName: data.FileName || existing.FileName,
         CategoryId: data.CategoryId
           ? parseInt(data.CategoryId)
           : existing.CategoryId,
@@ -122,8 +122,11 @@ updateProduct = async (id, data) => {
     }
   );
 
-  return result.modifiedCount > 0 ? "success" : "something went wrong";
+  return result.modifiedCount > 0
+    ? "success"
+    : "update failed";
 };
+
 
 
 

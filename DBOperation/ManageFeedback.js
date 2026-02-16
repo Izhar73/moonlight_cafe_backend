@@ -19,42 +19,42 @@ class ManageFeedback {
 
     // ✅ Insert Feedback
     saveFeedback = async (data) => {
-        const db = await dbConfig();
-        const collection = db.collection("Feedback_Master");
+  const db = await dbConfig();
+  const collection = db.collection("Feedback_Master");
 
-        const newId = await this.getmaxFeedbackID();
+  const result = await collection.insertOne({
+    userId: parseInt(data.userId),
+    message: data.message,
+    created_at: new Date(),
+  });
 
-        const result = await collection.insertOne({
-            _id: newId,
-            RegisterationId: parseInt(data.RegisterationId),
-            Message: data.Message,
-            reply: null,
-            created_at: new Date(),
-        });
+  return result.acknowledged ? "success" : "fail";
+};
 
-        return result.acknowledged ? "success" : "fail";
-    };
 
     // ✅ Get All Feedback
-    getFeedback = async () => {
-        const db = await dbConfig();
-        const collection = db.collection("Feedback_Master");
-
-    return await collection.aggregate([
+   getFeedback = async () => {
+  const db = await dbConfig();
+  return await db.collection("Feedback_Master").aggregate([
     {
-        $lookup: {
-            from: "Registeration_Master",   // ✅ correct
-            localField: "RegisterationId",
-            foreignField: "_id",
-            as: "UserData"
-        }
+      $lookup: {
+        from: "Registeration_Master",
+        localField: "userId",
+        foreignField: "_id",
+        as: "UserData",
+      },
     },
+    { $unwind: "$UserData" },
     {
-        $unwind: { path: "$UserData", preserveNullAndEmptyArrays: true }
-    }
-]).toArray();
+      $project: {
+        message: 1,
+        created_at: 1,
+        userName: "$UserData.fullname",
+      },
+    },
+  ]).toArray();
+};
 
-    };
 
     // ✅ Get One Feedback
     getFeedbackById = async (id) => {
