@@ -41,10 +41,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-app.use(
-  "/Content/Product/",
-  express.static(path.join(__dirname, "Content/Product"))
-);
+app.use("/Content", express.static(path.join(__dirname, "Content")));
+
 
 // -------------------------------------
 // ✅ Root Route
