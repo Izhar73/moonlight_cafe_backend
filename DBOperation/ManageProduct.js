@@ -100,26 +100,32 @@ getProducts = async () => {
   };
 
   // ✅ Update Product
-  updateProduct = async (id, data) => {
-    const db = await dbConfig();
-    const collection = db.collection("Product_Master");
+updateProduct = async (id, data) => {
+  const db = await dbConfig();
+  const collection = db.collection("Product_Master");
 
-    const result = await collection.updateOne(
-      { _id: parseInt(id) },
-      {
-        $set: {
-          ProductName: data.ProductName,
-          Description: data.Description,
-          Price: data.Price,
-          FileName: data.FileName,
-          CategoryId: data.CategoryId ? parseInt(data.CategoryId) : null,
-          updated_at: new Date()
-        }
-      }
-    );
+  const existing = await collection.findOne({ _id: parseInt(id) });
 
-    return result.modifiedCount > 0 ? "success" : "something went wrong";
-  };
+  const result = await collection.updateOne(
+    { _id: parseInt(id) },
+    {
+      $set: {
+        ProductName: data.ProductName,
+        Description: data.Description,
+        Price: data.Price,
+        FileName: data.FileName || existing.FileName, // keep old image
+        CategoryId: data.CategoryId
+          ? parseInt(data.CategoryId)
+          : existing.CategoryId,
+        updated_at: new Date(),
+      },
+    }
+  );
+
+  return result.modifiedCount > 0 ? "success" : "something went wrong";
+};
+
+
 
   // ✅ Delete Product
   deleteProduct = async (id) => {
