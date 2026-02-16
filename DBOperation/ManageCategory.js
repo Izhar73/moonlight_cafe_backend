@@ -1,5 +1,5 @@
 // ---------------------------------------------
-// 🌙 ManageCategory.js (MongoDB Version)
+// 🌙 ManageCategory.js (FINAL MongoDB VERSION)
 // ---------------------------------------------
 const { dbConfig } = require("./DBConfig");
 
@@ -51,26 +51,7 @@ class ManageCategory {
     return await collection.find({}).toArray();
   };
 
-  // ✅ Get Categories by Type
-  getCategoriesByType = async (type) => {
-    try {
-      const db = await dbConfig();
-      const collection = db.collection("Category_Master");
-      return await collection.find({ type }).toArray();
-    } catch (err) {
-      console.error("Type Fetch Error:", err);
-      return [];
-    }
-  };
-
-  // ✅ Get Category by ID
-  getCategoryById = async (id) => {
-    const db = await dbConfig();
-    const collection = db.collection("Category_Master");
-    return await collection.findOne({ _id: parseInt(id) });
-  };
-
-  // ✅ UPDATE CATEGORY (Correct MongoDB Way)
+  // ✅ Update Category
   updateCategory = async (id, data) => {
     try {
       const db = await dbConfig();
