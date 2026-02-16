@@ -1,5 +1,5 @@
 // ---------------------------------------------
-// 🌙 ManageCategory.js
+// 🌙 ManageCategory.js (MongoDB Version)
 // ---------------------------------------------
 const { dbConfig } = require("./DBConfig");
 
@@ -8,31 +8,40 @@ class ManageCategory {
   getMaxCategoryId = async () => {
     const db = await dbConfig();
     const collection = db.collection("Category_Master");
-    const result = await collection.find({}, { projection: { _id: 1 } }).sort({ _id: -1 }).toArray();
+
+    const result = await collection
+      .find({}, { projection: { _id: 1 } })
+      .sort({ _id: -1 })
+      .limit(1)
+      .toArray();
+
     const ID = (result.length > 0 ? result[0]._id : 0) + 1;
-    console.log("Generated Category ID:", ID);
     return ID;
   };
 
   // ✅ Save Category
   saveCategory = async (data) => {
-    const db = await dbConfig();
-    const collection = db.collection("Category_Master");
-    const categoryId = await this.getMaxCategoryId();
+    try {
+      const db = await dbConfig();
+      const collection = db.collection("Category_Master");
 
-    console.log("Saving Category ID:", categoryId);
+      const categoryId = await this.getMaxCategoryId();
 
-    const result = await collection.insertOne({
-      _id: categoryId,
-      category_name: data.category_name,
-      description: data.description || "",
-      type: data.type || "Veg", // ✅ Added Veg/Non-Veg type
-      created_at: new Date(),
-    });
+      const result = await collection.insertOne({
+        _id: categoryId,
+        category_name: data.category_name,
+        description: data.description || "",
+        type: data.type || "Veg",
+        created_at: new Date(),
+      });
 
-    return result.acknowledged
-      ? { Status: "OK", Result: "Successfully Saved" }
-      : { Status: "Fail", Result: "Something Went Wrong" };
+      return result.acknowledged
+        ? { Status: "OK", Result: "Successfully Saved" }
+        : { Status: "Fail", Result: "Something Went Wrong" };
+    } catch (error) {
+      console.error("Save Error:", error);
+      return { Status: "Fail", Result: error.message };
+    }
   };
 
   // ✅ Get All Categories
@@ -42,15 +51,14 @@ class ManageCategory {
     return await collection.find({}).toArray();
   };
 
-  // ✅ Get Categories by Type (Veg / Non-Veg)
+  // ✅ Get Categories by Type
   getCategoriesByType = async (type) => {
     try {
       const db = await dbConfig();
       const collection = db.collection("Category_Master");
-      const categories = await collection.find({ type }).toArray();
-      return categories;
+      return await collection.find({ type }).toArray();
     } catch (err) {
-      console.error("Error in getCategoriesByType:", err);
+      console.error("Type Fetch Error:", err);
       return [];
     }
   };
@@ -59,23 +67,36 @@ class ManageCategory {
   getCategoryById = async (id) => {
     const db = await dbConfig();
     const collection = db.collection("Category_Master");
-    const category = await collection.findOne({ _id: parseInt(id) });
-    return category || "No Category Found";
+    return await collection.findOne({ _id: parseInt(id) });
   };
 
-  // ✅ Update Category
-  async updateCategory(id, data) {
-  try {
-    const db = await dbConfig();
-    await db.collection("Category").doc(id).update(data);
+  // ✅ UPDATE CATEGORY (Correct MongoDB Way)
+  updateCategory = async (id, data) => {
+    try {
+      const db = await dbConfig();
+      const collection = db.collection("Category_Master");
 
-    return { Status: "OK", Result: "Category updated successfully" };
-  } catch (error) {
-    console.error("Update Error:", error);
-    return { Status: "Fail", Result: error.message };
-  }
-}
+      const result = await collection.updateOne(
+        { _id: parseInt(id) },
+        {
+          $set: {
+            category_name: data.category_name,
+            description: data.description || "",
+            type: data.type || "Veg",
+          },
+        }
+      );
 
+      if (result.modifiedCount > 0) {
+        return { Status: "OK", Result: "Category updated successfully" };
+      } else {
+        return { Status: "Fail", Result: "No record updated" };
+      }
+    } catch (error) {
+      console.error("Update Error:", error);
+      return { Status: "Fail", Result: error.message };
+    }
+  };
 
   // ✅ Delete Category
   deleteCategory = async (id) => {
@@ -84,9 +105,10 @@ class ManageCategory {
 
     const result = await collection.deleteOne({ _id: parseInt(id) });
 
-    return result.deletedCount > 0 ? "Successfully Deleted" : "No Record Found";
+    return result.deletedCount > 0
+      ? "Successfully Deleted"
+      : "No Record Found";
   };
 }
 
-// ✅ Export
 module.exports = new ManageCategory();
